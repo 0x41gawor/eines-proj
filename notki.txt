@@ -1,0 +1,26 @@
+We have flows:
+H1-H4
+H1-H5
+H1-H6
+H2-H4
+H2-H5
+H2-H6
+H3-H4
+H3-H5
+H3-H6
+Intent says how the flows should be routed
+Policy is to e.g. load balance the network
+
+First you know the flow will appear, you set up the switches, and then the flow goes. There is not some magic with PACKET_IN/PACKET_OUT stuff etc. the controller is not reactive to be easy
+
+Intents can be hardcoded into python script (controlled code?)
+controller can read some text files
+manual commands are fine
+
+ok, so new intent appears/is generated and it feeds controller with new information and controller takes some action based on it
+
+you can assume the duration of flow lifetime is inifinite
+
+you can reject the intent or accept it and then allocate it with respect of network policies
+
+The teaching point of the proj is that we translate some high level intent into some low level decisions
