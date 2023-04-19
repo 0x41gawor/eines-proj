@@ -41,6 +41,8 @@ def _handle_ConnectionUp (event):
       s5_dpid = event.connection.dpid
       print "s5_dpid=", s5_dpid
 
+def _handle_Intent (event):
+
+
 def launch ():
   core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp) # listen for the establishment of a new control channel with a switch, https://noxrepo.github.io/pox-doc/html/#connectionup
-

@@ -117,6 +117,15 @@ Tak, więc `dzienciol.py` posiada tylko funckję `_handle_ConnectionUp` oraz lau
 
 Jak narazie `dzienciol.py` nie wstawia żadnych table flow entries do switchów wobec tego w sieci `topology.py` nie działają pingi pomiędzy hostami. 
 
-Następnym krokiem jest sprawić, aby `dzienciol.py` wstawił jakikolwiek flow entry do switcha (ale inaczej niż jako handle na PACKET_IN) i żeby dało się spingować jakikolwiek host.
+Następnym krokiem jest sprawić, aby `dzienciol.py` wstawił jakikolwiek flow entry do switcha  i żeby dało się spingować jakikolwiek host.
 
 > Tak się zastanawiam, że chyba skoro tylko lewa strona switchów ma obsługiwać intenty, to można na PACKET_IN dać jakiś behavior dla prawej strony i wgl niech defaultowo wszystko będzie na PACKET_IN jakimś hardcoded routingiem, a dopiero jak przyjdzie intent to będą zmiany.
+
+# Future goals
+
+1. Default flows 
+2. Network Policer
+3. Intent Handler
+4. Network Monitor
+5. Intent Policer
+
