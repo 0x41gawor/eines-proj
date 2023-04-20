@@ -1,4 +1,8 @@
-# Nasz wizja na projekt
+# Intro
+
+Na rzecz projektu stworzymy komponent POX o nazwie `dzienciol.py`, który będzie implementował funkcjonalności wymagane w projekcie.
+
+# Podjęte decyzje, poczynione założenia
 
 ## Intent model
 
@@ -47,7 +51,7 @@ Mimo, iż druga opcja jest dużo bardziej naturalna, to programistycznie o niebo
 
 W zmiennej będziemy trzymać aktualnie intented flow oraz jego delay limit. 
 
-## Architektura dzienciola
+# Architektura dzienciola
 
 `dzineciol.py` to produkt, który będziemy tworzyć w ramach projektu
 
@@ -59,51 +63,6 @@ W zmiennej będziemy trzymać aktualnie intented flow oraz jego delay limit.
   - będzie przyjmował request na intent i triggerował Intent Policer
 - Network Monitor
   - Będzie monitorował jakie są delaye na rutach i ew. triggerował Intent jak wykryje nie spełnienie wymagań
-
-
-
-# Intro
-
-Na rzecz projektu stworzymy komponent POX o nazwie `dzienciol.py`, który będzie implementował funkcjonalności wymagane w projekcie.
-
-# Uruchomienie controllera i sieci
-
-## Najpierw sieć
-
-Wchodzisz w folder `$/Desktop/proj`
-
-```sh
-cd ~/Desktop/proj
-sudo python topology.py
-```
-
-## Potem POX a nim dzienciol
-
-Folder: `~/pox/`
-
-```sh
-cd ~/pox
-sudo python ./pox.py dzienciol &
-```
-
-### Zabicie Sieci
-
-```
-mininet> exit
-sudo mn -c
-```
-
-## Zabicie Dzienciola
-
-Ofc najpierw ctrl+c
-
-Potem
-
-```
-ps -aux | grep pox
-sudo kill -9 <pid>
-sudo kill -9 <pid>
-```
 
 # Release history of dzienciol.py
 
