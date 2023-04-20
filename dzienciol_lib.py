@@ -76,8 +76,16 @@ def handle_packetIn_s1(event):
 
     msg = FlowEntryPortPort(in_port=1, out_port=4)
     event.connection.send(msg)
+    msg = FlowEntryPortPort(in_port=2, out_port=4)
+    event.connection.send(msg)
+    msg = FlowEntryPortPort(in_port=3, out_port=4)
+    event.connection.send(msg)
 
     msg = FlowEntryAddressPort(dst_address="10.0.0.1", out_port=1)
+    event.connection.send(msg)
+    msg = FlowEntryAddressPort(dst_address="10.0.0.2", out_port=2)
+    event.connection.send(msg)
+    msg = FlowEntryAddressPort(dst_address="10.0.0.3", out_port=3)
     event.connection.send(msg)
 
 def handle_packetIn_s2(event):
@@ -90,7 +98,38 @@ def handle_packetIn_s2(event):
     event.connection.send(msg)
     
     # IP ----------------------------------------------
+    msg = FlowEntryPortPort(in_port=1, out_port=2)
+    event.connection.send(msg)
 
+    msg = FlowEntryPortPort(in_port=2, out_port=1)
+    event.connection.send(msg)
+
+def handle_packetIn_s3(event):
+    
+    # ARP ----------------------------------------------
+    msg = FlowEntryArpPortPort(in_port=1, out_port=2)
+    event.connection.send(msg)
+
+    msg = FlowEntryArpPortPort(in_port=2, out_port=1)
+    event.connection.send(msg)
+    
+    # IP ----------------------------------------------
+    msg = FlowEntryPortPort(in_port=1, out_port=2)
+    event.connection.send(msg)
+
+    msg = FlowEntryPortPort(in_port=2, out_port=1)
+    event.connection.send(msg)
+
+def handle_packetIn_s4(event):
+    
+    # ARP ----------------------------------------------
+    msg = FlowEntryArpPortPort(in_port=1, out_port=2)
+    event.connection.send(msg)
+
+    msg = FlowEntryArpPortPort(in_port=2, out_port=1)
+    event.connection.send(msg)
+    
+    # IP ----------------------------------------------
     msg = FlowEntryPortPort(in_port=1, out_port=2)
     event.connection.send(msg)
 
@@ -123,9 +162,16 @@ def handle_packetIn_s5(event):
 
     ## IP -----------------------------------------------
 
-    msg = FlowEntryAddressPort("10.0.0.4", 4)
-    event.connection.send(msg)
-
     msg = FlowEntryPortPort(in_port=4, out_port=1)
     event.connection.send(msg)
+    msg = FlowEntryPortPort(in_port=5, out_port=1)
+    event.connection.send(msg)
+    msg = FlowEntryPortPort(in_port=6, out_port=1)
+    event.connection.send(msg)
 
+    msg = FlowEntryAddressPort("10.0.0.4", 4)
+    event.connection.send(msg)
+    msg = FlowEntryAddressPort("10.0.0.5", 5)
+    event.connection.send(msg)
+    msg = FlowEntryAddressPort("10.0.0.6", 6)
+    event.connection.send(msg)

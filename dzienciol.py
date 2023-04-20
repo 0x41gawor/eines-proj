@@ -47,10 +47,12 @@ def _handle_PacketIn(event):
 
   if event.connection.dpid==s1_dpid:
     handle_packetIn_s1(event)
-    
   elif event.connection.dpid==s2_dpid:
     handle_packetIn_s2(event)
-    
+  elif event.connection.dpid==s2_dpid:
+    handle_packetIn_s3(event)
+  elif event.connection.dpid==s2_dpid:
+    handle_packetIn_s4(event)
   elif event.connection.dpid==s5_dpid:
     handle_packetIn_s5(event)
 
