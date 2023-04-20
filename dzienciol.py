@@ -13,7 +13,7 @@ from dzienciol_lib import *
  
 log = core.getLogger()
  
-s1_dpid=0
+s1_dpid=0 
 s2_dpid=0
 s3_dpid=0
 s4_dpid=0

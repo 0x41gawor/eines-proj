@@ -53,35 +53,25 @@ def handle_packetIn_s1(event):
 
     ## ARP -------------------------------
     a=packet.find('arp')					# If packet object does not encapsulate a packet of the type indicated, find() returns None
-    if a and a.protodst=="10.0.0.4":
-       msg = of.ofp_packet_out(data=event.ofp)			# Create packet_out message; use the incoming packet as the data for the packet out
-       msg.actions.append(of.ofp_action_output(port=4))		# Add an action to send to the specified port
-       event.connection.send(msg)				# Send message to switch
- 
-    if a and a.protodst=="10.0.0.5":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=4))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.6":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=4))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.1":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=1))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.2":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=2))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.3":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=3))
-       event.connection.send(msg)
+    if a:
+      if a.protodst=="10.0.0.4":
+         msg = AppendPacketOutWithPort(event.ofp, 4)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.5":
+         msg = AppendPacketOutWithPort(event.ofp, 4)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.6":
+         msg = AppendPacketOutWithPort(event.ofp, 4)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.1":
+         msg = AppendPacketOutWithPort(event.ofp, 1)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.2":
+         msg = AppendPacketOutWithPort(event.ofp, 2)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.3":
+         msg = AppendPacketOutWithPort(event.ofp, 3)
+         event.connection.send(msg)
     ## IP ---------------------------------
 
     msg = FlowEntryPortPort(in_port=1, out_port=4)
@@ -111,35 +101,25 @@ def handle_packetIn_s5(event):
     packet = event.parsed
     ## ARP ---------------------------
     a=packet.find('arp')					# If packet object does not encapsulate a packet of the type indicated, find() returns None
-    if a and a.protodst=="10.0.0.4":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=4))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.5":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=5))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.6":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=6))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.1":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=1))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.2":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=1))
-       event.connection.send(msg)
- 
-    if a and a.protodst=="10.0.0.3":
-       msg = of.ofp_packet_out(data=event.ofp)
-       msg.actions.append(of.ofp_action_output(port=1))
-       event.connection.send(msg)
+    if a:
+      if a.protodst=="10.0.0.4":
+         msg = AppendPacketOutWithPort(event.ofp, 4)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.5":
+         msg = AppendPacketOutWithPort(event.ofp, 5)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.6":
+         msg = AppendPacketOutWithPort(event.ofp, 6)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.1":
+         msg = AppendPacketOutWithPort(event.ofp, 1)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.2":
+         msg = AppendPacketOutWithPort(event.ofp, 1)
+         event.connection.send(msg)
+      if a.protodst=="10.0.0.3":
+         msg = AppendPacketOutWithPort(event.ofp, 1)
+         event.connection.send(msg)
 
     ## IP -----------------------------------------------
 
