@@ -129,3 +129,22 @@ Następnym krokiem jest sprawić, aby `dzienciol.py` wstawił jakikolwiek flow e
 4. Network Monitor
 5. Intent Policer
 
+## 1. Default flows
+
+### AS IS
+
+Obecnie controller żadnemu ze switchy nie wpisuje żadnych table flow entries wobec tego ping między hostami nie działają.
+
+### TO BE
+
+Chcemy, aby każdy ze switchy otrzymał defaultowe ścieżki.
+
+Tzn. gdy pojawi się pakiet i switch wyśle do dzienciola PACKET_IN, to żeby dzienciol mu odpowiedział defaultowym pathem. Narysujmy te ścieżki na topologii.
+
+![](img/4.png)
+
+### Implementacja
+
+Na to to się przekłada w flow table
+
+![](img/5.png)
