@@ -9,6 +9,7 @@ from pox.lib.packet.packet_utils import *
 import pox.lib.packet as pkt
 from pox.lib.recoco import Timer
 import time
+from dzienciol_lib import *
  
 log = core.getLogger()
  
@@ -17,6 +18,7 @@ s2_dpid=0
 s3_dpid=0
 s4_dpid=0
 s5_dpid=0
+
 def _handle_ConnectionUp (event):
   # waits for connections from all switches, after connecting to all of them it starts a round robin timer for triggering h1-h4 routing changes
   global s1_dpid, s2_dpid, s3_dpid, s4_dpid, s5_dpid
@@ -41,6 +43,20 @@ def _handle_ConnectionUp (event):
       s5_dpid = event.connection.dpid
       print "s5_dpid=", s5_dpid
 
+def _handle_PacketIn(event):
+
+  if event.connection.dpid==s1_dpid:
+    handle_packetIn_s1(event)
+    
+  elif event.connection.dpid==s2_dpid:
+    handle_packetIn_s2(event)
+    
+  elif event.connection.dpid==s5_dpid:
+    handle_packetIn_s5(event)
+
+
+  
 
 def launch ():
   core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp) # listen for the establishment of a new control channel with a switch, https://noxrepo.github.io/pox-doc/html/#connectionup
+  core.openflow.addListenerByName("PacketIn",_handle_PacketIn)
