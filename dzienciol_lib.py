@@ -10,6 +10,23 @@ import pox.lib.packet as pkt
 from pox.lib.recoco import Timer
 import time
 
+#probe protocol packet definition; only timestamp field is present in the header (no payload part)
+class myproto(packet_base):
+  #My Protocol packet struct
+  """
+  myproto class defines our special type of packet to be sent all the way along including the link between the switches to measure link delays;
+  it adds member attribute named timestamp to carry packet creation/sending time by the controller, and defines the 
+  function hdr() to return the header of measurement packet (header will contain timestamp)
+  """
+  #For more info on packet_base class refer to file pox/lib/packet/packet_base.py
+
+  def __init__(self):
+     packet_base.__init__(self)
+     self.timestamp=0
+
+  def hdr(self, payload):
+     return struct.pack('!I', self.timestamp) # code as unsigned int (I), network byte order (!, big-endian - the most significant byte of a word at the smallest memory address)
+
 # Ta funkcja jest dla pakietow IP, dl_type=0x0800 na to wskazuje
 def FlowEntryPortPort(in_port, out_port):
     msg = of.ofp_flow_mod()
@@ -42,6 +59,7 @@ def FlowEntryArpPortPort(in_port, out_port):
     msg.match.dl_type=0x0806	
     msg.actions.append(of.ofp_action_output(port = out_port))
     return msg
+
 # Ten PacketOut mowi switchom S1 i S5 na jakim porcie maja  jaki adres IP
 def AppendPacketOutWithPort(packet, out_port):
     msg = of.ofp_packet_out(data=packet)			# Create packet_out message; use the incoming packet as the data for the packet out
@@ -89,7 +107,7 @@ def handle_packetIn_s1(event):
     event.connection.send(msg)
 
 def handle_packetIn_s2(event):
-    
+
     # ARP ----------------------------------------------
     msg = FlowEntryArpPortPort(in_port=1, out_port=2)
     event.connection.send(msg)

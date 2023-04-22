@@ -63,8 +63,10 @@ def _handle_ConnectionUp (event):
   for m in event.connection.features.ports:
     if m.name == "s0-eth0":
       src_dpid = event.connection.dpid
+      print "src_dpid=", src_dpid
     elif m.name == "s1-eth0":
       dst_dpid = event.connection.dpid
+      print "dst_dpid=", dst_dpid
 
   #when the controller knows both src_dpid and dst_dpid are up, mytimer is started so that a probe packet is sent every 2 seconds across the link between respective switches
   if src_dpid<>0 and dst_dpid<>0:
