@@ -10,8 +10,25 @@ import pox.lib.packet as pkt
 from pox.lib.recoco import Timer
 import time
 
+#probe protocol packet definition; only timestamp field is present in the header (no payload part)
+class myproto(packet_base):
+  #My Protocol packet struct
+  """
+  myproto class defines our special type of packet to be sent all the way along including the link between the switches to measure link delays;
+  it adds member attribute named timestamp to carry packet creation/sending time by the controller, and defines the 
+  function hdr() to return the header of measurement packet (header will contain timestamp)
+  """
+  #For more info on packet_base class refer to file pox/lib/packet/packet_base.py
+
+  def __init__(self):
+     packet_base.__init__(self)
+     self.timestamp=0
+
+  def hdr(self, payload):
+     return struct.pack('!I', self.timestamp) # code as unsigned int (I), network byte order (!, big-endian - the most significant byte of a word at the smallest memory address)
+
 # Ta funkcja jest dla pakietow IP, dl_type=0x0800 na to wskazuje
-def FlowEntryPortPort(in_port, out_port):
+def FlowEntryInPortOutPort(in_port, out_port):
     msg = of.ofp_flow_mod()
     msg.priority =10
     msg.idle_timeout = 0
@@ -22,7 +39,7 @@ def FlowEntryPortPort(in_port, out_port):
     return msg
 
 # Ta funkcja jest dla pakietow IP, dl_type=0x0800 na to wskazuje
-def FlowEntryAddressPort(dst_address, out_port):
+def FlowEntryInAddressOutPort(dst_address, out_port):
     msg = of.ofp_flow_mod()
     msg.priority =100
     msg.idle_timeout = 0
@@ -75,67 +92,20 @@ def handle_packetIn_s1(event):
          event.connection.send(msg)
     ## IP ---------------------------------
 
-    msg = FlowEntryPortPort(in_port=1, out_port=4)
+    msg = FlowEntryInPortOutPort(in_port=1, out_port=4)
     event.connection.send(msg)
-    msg = FlowEntryPortPort(in_port=2, out_port=4)
+    msg = FlowEntryInPortOutPort(in_port=2, out_port=4)
     event.connection.send(msg)
-    msg = FlowEntryPortPort(in_port=3, out_port=4)
-    event.connection.send(msg)
-
-    msg = FlowEntryAddressPort(dst_address="10.0.0.1", out_port=1)
-    event.connection.send(msg)
-    msg = FlowEntryAddressPort(dst_address="10.0.0.2", out_port=2)
-    event.connection.send(msg)
-    msg = FlowEntryAddressPort(dst_address="10.0.0.3", out_port=3)
+    msg = FlowEntryInPortOutPort(in_port=3, out_port=4)
     event.connection.send(msg)
 
-def handle_packetIn_s2(event):
-
-    # ARP ----------------------------------------------
-    msg = FlowEntryArpPortPort(in_port=1, out_port=2)
+    msg = FlowEntryInAddressOutPort(dst_address="10.0.0.1", out_port=1)
+    event.connection.send(msg)
+    msg = FlowEntryInAddressOutPort(dst_address="10.0.0.2", out_port=2)
+    event.connection.send(msg)
+    msg = FlowEntryInAddressOutPort(dst_address="10.0.0.3", out_port=3)
     event.connection.send(msg)
 
-    msg = FlowEntryArpPortPort(in_port=2, out_port=1)
-    event.connection.send(msg)
-    
-    # IP ----------------------------------------------
-    msg = FlowEntryPortPort(in_port=1, out_port=2)
-    event.connection.send(msg)
-
-    msg = FlowEntryPortPort(in_port=2, out_port=1)
-    event.connection.send(msg)
-
-def handle_packetIn_s3(event):
-    
-    # ARP ----------------------------------------------
-    msg = FlowEntryArpPortPort(in_port=1, out_port=2)
-    event.connection.send(msg)
-
-    msg = FlowEntryArpPortPort(in_port=2, out_port=1)
-    event.connection.send(msg)
-    
-    # IP ----------------------------------------------
-    msg = FlowEntryPortPort(in_port=1, out_port=2)
-    event.connection.send(msg)
-
-    msg = FlowEntryPortPort(in_port=2, out_port=1)
-    event.connection.send(msg)
-
-def handle_packetIn_s4(event):
-    
-    # ARP ----------------------------------------------
-    msg = FlowEntryArpPortPort(in_port=1, out_port=2)
-    event.connection.send(msg)
-
-    msg = FlowEntryArpPortPort(in_port=2, out_port=1)
-    event.connection.send(msg)
-    
-    # IP ----------------------------------------------
-    msg = FlowEntryPortPort(in_port=1, out_port=2)
-    event.connection.send(msg)
-
-    msg = FlowEntryPortPort(in_port=2, out_port=1)
-    event.connection.send(msg)
 
 def handle_packetIn_s5(event):
     packet = event.parsed
@@ -163,16 +133,16 @@ def handle_packetIn_s5(event):
 
     ## IP -----------------------------------------------
 
-    msg = FlowEntryPortPort(in_port=4, out_port=1)
+    msg = FlowEntryInPortOutPort(in_port=4, out_port=1)
     event.connection.send(msg)
-    msg = FlowEntryPortPort(in_port=5, out_port=1)
+    msg = FlowEntryInPortOutPort(in_port=5, out_port=1)
     event.connection.send(msg)
-    msg = FlowEntryPortPort(in_port=6, out_port=1)
+    msg = FlowEntryInPortOutPort(in_port=6, out_port=1)
     event.connection.send(msg)
 
-    msg = FlowEntryAddressPort("10.0.0.4", 4)
+    msg = FlowEntryInAddressOutPort("10.0.0.4", 4)
     event.connection.send(msg)
-    msg = FlowEntryAddressPort("10.0.0.5", 5)
+    msg = FlowEntryInAddressOutPort("10.0.0.5", 5)
     event.connection.send(msg)
-    msg = FlowEntryAddressPort("10.0.0.6", 6)
+    msg = FlowEntryInAddressOutPort("10.0.0.6", 6)
     event.connection.send(msg)

@@ -11,6 +11,7 @@ from pox.lib.recoco import Timer
 import time
 from dzienciol_lib import *
 from dzienciol_delay import *
+from network_policer import *
  
 log = core.getLogger()
 
@@ -100,17 +101,18 @@ def _handle_PacketIn(event):
     elif event.connection.dpid==s4_dpid:
       handle_probe_packetIn(packet=packet, received_time=received_time, OWDs1_ctrl=OWDs1_ctrl, other_s_OWD=OWDs4_ctrl, switch_name="s4")
 
-  else: #other packet types for routing purposes
-    if event.connection.dpid==s1_dpid:
-      handle_packetIn_s1(event)
-    elif event.connection.dpid==s2_dpid:
-      handle_packetIn_s2(event)
-    elif event.connection.dpid==s2_dpid:
-      handle_packetIn_s3(event)
-    elif event.connection.dpid==s2_dpid:
-      handle_packetIn_s4(event)
-    elif event.connection.dpid==s5_dpid:
-      handle_packetIn_s5(event)
+  networkPolicer = NetworkPolicer(core.openflow, s1_dpid, s5_dpid)
+
+  if event.connection.dpid==s1_dpid:
+    handle_packetIn_s1(event)
+  elif event.connection.dpid==s2_dpid:
+    networkPolicer.install_transit_routing(event)
+  elif event.connection.dpid==s3_dpid:
+    networkPolicer.install_transit_routing(event)
+  elif event.connection.dpid==s4_dpid:
+    networkPolicer.install_transit_routing(event)
+  elif event.connection.dpid==s5_dpid:
+    handle_packetIn_s5(event)
 
 def _handle_ConnectionDown (event):
   #Handle connection down - stop the timer for sending the probes
