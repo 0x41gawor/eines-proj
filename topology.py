@@ -30,18 +30,19 @@ class MyTopo(Topo):
         h5=self.addHost('h5')
         h6=self.addHost('h6')
 
-        self.addLink(h1, s1, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(h2, s1, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(h3, s1, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s1, s2, addr1="0:0:0:1:2:1", addr2="0:0:0:1:2:2", bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s1, s3, addr1="0:0:0:1:3:1", addr2="0:0:0:1:3:2", bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s1, s4, addr1="0:0:0:1:4:1", addr2="0:0:0:1:4:2", bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s2, s5, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s3, s5, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s4, s5, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s5, h4, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s5, h5, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
-        self.addLink(s5, h6, bw=1, delay='10ms', loss=0, max_queue_size=1000, use_htb=True)
+        delay = '10ms'
+        self.addLink(h1, s1, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(h2, s1, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(h3, s1, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s1, s2, addr1="0:0:0:1:2:1", addr2="0:0:0:1:2:2", bw=1, delay='120ms', loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s1, s3, addr1="0:0:0:1:3:1", addr2="0:0:0:1:3:2", bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s1, s4, addr1="0:0:0:1:4:1", addr2="0:0:0:1:4:2", bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s2, s5, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s3, s5, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s4, s5, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s5, h4, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s5, h5, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
+        self.addLink(s5, h6, bw=1, delay=delay, loss=0, max_queue_size=1000, use_htb=True)
 
 def perfTest():
     "Create network and run simple performance test"

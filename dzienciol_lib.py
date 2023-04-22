@@ -10,23 +10,6 @@ import pox.lib.packet as pkt
 from pox.lib.recoco import Timer
 import time
 
-#probe protocol packet definition; only timestamp field is present in the header (no payload part)
-class myproto(packet_base):
-  #My Protocol packet struct
-  """
-  myproto class defines our special type of packet to be sent all the way along including the link between the switches to measure link delays;
-  it adds member attribute named timestamp to carry packet creation/sending time by the controller, and defines the 
-  function hdr() to return the header of measurement packet (header will contain timestamp)
-  """
-  #For more info on packet_base class refer to file pox/lib/packet/packet_base.py
-
-  def __init__(self):
-     packet_base.__init__(self)
-     self.timestamp=0
-
-  def hdr(self, payload):
-     return struct.pack('!I', self.timestamp) # code as unsigned int (I), network byte order (!, big-endian - the most significant byte of a word at the smallest memory address)
-
 # Ta funkcja jest dla pakietow IP, dl_type=0x0800 na to wskazuje
 def FlowEntryPortPort(in_port, out_port):
     msg = of.ofp_flow_mod()

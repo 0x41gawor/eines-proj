@@ -10,6 +10,7 @@ import pox.lib.packet as pkt
 from pox.lib.recoco import Timer
 import time
 from dzienciol_lib import *
+from dzienciol_delay import *
  
 log = core.getLogger()
 
@@ -18,11 +19,13 @@ log = core.getLogger()
 start_time = 0.0
 sent_time1=0.0
 sent_time2=0.0
-received_time1 = 0.0
-received_time2 = 0.0
+sent_time3=0.0
+sent_time4=0.0
 mytimer = 0
-OWD1=0.0
-OWD2=0.0
+OWDs1_ctrl=0.0
+OWDs2_ctrl=0.0
+OWDs3_ctrl=0.0
+OWDs4_ctrl=0.0
 
 s1_dpid=0 
 s2_dpid=0
@@ -54,52 +57,60 @@ def _handle_ConnectionUp (event):
       s5_dpid = event.connection.dpid
       print "s5_dpid=", s5_dpid
 
-  #when the controller knows both src_dpid and dst_dpid are up, mytimer is started so that a probe packet is sent every 2 seconds across the link between respective switches
-  if s1_dpid<>0 and s2_dpid<>0:
-    mytimer=Timer(2, _timer_func, recurring=True)
+  #when the controller knows all switches for delay measuring (i.e. between source s1_dpid and destination s2/s3/s4_dpid) are up, mytimer is started so that a probe packet is sent every 5 seconds across the link between respective switches
+  if s1_dpid<>0 and s2_dpid<>0 and s3_dpid<>0 and s4_dpid<>0:
+    mytimer=Timer(5, _timer_func, recurring=True)
     #mytimer.start() #DB: mytimer.start() was originally used, now supressed for rising assertion error
 
 def _handle_portstats_received (event):
-   #Here, port statistics responses are handled to calculate delays T1 and T2 (see the lab instructions)
+   #Here, port statistics responses are handled to calculate delays T1 (controller-s1) and T2 (s2/s3/s4-controller)
 
-   global start_time, sent_time1, sent_time2, received_time1, received_time2, s1_dpid, s2_dpid, OWD1, OWD2
-
+   global start_time, sent_time1, sent_time2, sent_time3, sent_time4, s1_dpid, s2_dpid, s3_dpid, s4_dpid, OWDs1_ctrl, OWDs2_ctrl, OWDs3_ctrl, OWDs4_ctrl
+  
    received_time = time.time() * 1000*10 - start_time
+
    #measure T1 as of lab guide
    if event.connection.dpid == s1_dpid:
-     OWD1=0.5*(received_time - sent_time1)
-     #print "OWD1: ", OWD1, "ms"
+     OWDs1_ctrl=measure_delay_component(received_time=received_time, sent_time=sent_time1)
  
-   #measure T2 as of lab guide
+    #measure T2 as of lab guide
    elif event.connection.dpid == s2_dpid:
-     OWD2=0.5*(received_time - sent_time2) #originally sent_time1 was here
-     #print "OWD2: ", OWD2, "ms"
+     OWDs2_ctrl=measure_delay_component(received_time=received_time, sent_time=sent_time2) #originally sent_time1 was here
+
+    #measure T2 as of lab guide
+   elif event.connection.dpid == s3_dpid:
+     OWDs3_ctrl=measure_delay_component(received_time=received_time, sent_time=sent_time3) #originally sent_time1 was here
+
+    #measure T2 as of lab guide
+   elif event.connection.dpid == s4_dpid:
+     OWDs4_ctrl=measure_delay_component(received_time=received_time, sent_time=sent_time4) #originally sent_time1 was here
 
 def _handle_PacketIn(event):
 
-  global start_time, OWD1, OWD2
+  global start_time, OWDs1_ctrl, OWDs2_ctrl, OWDs3_ctrl, OWDs4_ctrl
 
   received_time = time.time() * 1000*10 - start_time #amount of time elapsed from start_time
 
-  if event.connection.dpid==s1_dpid:
-    handle_packetIn_s1(event)
-  elif event.connection.dpid==s2_dpid:
-    packet = event.parsed
-    if packet.type==0x5577: #0x5577 is unregistered EtherType, here assigned to probe packets
-      #Process a probe packet received in PACKET_IN message from 'switch1' (s2_dpid), previously sent to 'switch0' (s1_dpid) in PACKET_OUT.
+  packet = event.parsed
+  if packet.type==0x5577: #0x5577 is unregistered EtherType, here assigned to probe packets
+    if event.connection.dpid==s2_dpid:
+      handle_probe_packetIn(packet=packet, received_time=received_time, OWDs1_ctrl=OWDs1_ctrl, other_s_OWD=OWDs2_ctrl, switch_name="s2")
+    elif event.connection.dpid==s3_dpid:
+      handle_probe_packetIn(packet=packet, received_time=received_time, OWDs1_ctrl=OWDs1_ctrl, other_s_OWD=OWDs3_ctrl, switch_name="s3")
+    elif event.connection.dpid==s4_dpid:
+      handle_probe_packetIn(packet=packet, received_time=received_time, OWDs1_ctrl=OWDs1_ctrl, other_s_OWD=OWDs4_ctrl, switch_name="s4")
 
-      c=packet.find('ethernet').payload
-      d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
-      print "[ms*10]: received_time=", int(received_time), ", d=", d, ", OWD1=", int(OWD1), ", OWD2=", int(OWD2)
-      print "delay:", int(received_time - d - OWD1 - OWD2)/10, "[ms] <=====" # divide by 10 to normalise to milliseconds
-    else:
+  else: #other packet types for routing purposes
+    if event.connection.dpid==s1_dpid:
+      handle_packetIn_s1(event)
+    elif event.connection.dpid==s2_dpid:
       handle_packetIn_s2(event)
-  elif event.connection.dpid==s2_dpid:
-    handle_packetIn_s3(event)
-  elif event.connection.dpid==s2_dpid:
-    handle_packetIn_s4(event)
-  elif event.connection.dpid==s5_dpid:
-    handle_packetIn_s5(event)
+    elif event.connection.dpid==s2_dpid:
+      handle_packetIn_s3(event)
+    elif event.connection.dpid==s2_dpid:
+      handle_packetIn_s4(event)
+    elif event.connection.dpid==s5_dpid:
+      handle_packetIn_s5(event)
 
 def _handle_ConnectionDown (event):
   #Handle connection down - stop the timer for sending the probes
@@ -120,37 +131,26 @@ def _timer_func ():
   delay variations. Little can be done about it without modyfying POX libraries and we rather have to live with this feature.
   """
 
-  global start_time, sent_time1, sent_time2, s1_dpid, s2_dpid
+  global start_time, sent_time1, sent_time2, sent_time3, sent_time4, s1_dpid, s2_dpid, s3_dpid, s4_dpid
  
-  #the following executes only when a connection to 'switch0' exists (otherwise AttributeError can be raised)
+  #the following executes only when a connection to 's1' exists (otherwise AttributeError can be raised)
   if s1_dpid <>0 and not core.openflow.getConnection(s1_dpid) is None:
+    sent_time1 = send_stats_request_packet(src_dpid=s1_dpid, start_time=start_time)
 
-    #send out port_stats_request packet through switch0 connection src_dpid (to measure T1)
-    core.openflow.getConnection(s1_dpid).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
-    sent_time1=time.time() * 1000*10 - start_time #sending time of stats_req: ctrl => switch0
-    #print "sent_time1:", sent_time1
+    for i in range(2, 5):
+      send_probe_packet(destination_switch=i, start_time=start_time, dpid=s1_dpid)
 
-    #sequence of packet formating operations optimised to reduce the delay variation of e-2-e measurements (to measure T3)
-    f = myproto() #create a probe packet object
-    e = pkt.ethernet() #create L2 type packet (frame) object
-    e.src = EthAddr("0:0:0:1:2:1")
-    e.dst = EthAddr("0:1:0:1:2:2")
-    e.type=0x5577 #set unregistered EtherType in L2 header type field, here assigned to the probe packet type 
-    msg = of.ofp_packet_out() #create PACKET_OUT message object
-    msg.actions.append(of.ofp_action_output(port=4)) #set the output port for the packet in switch0
-    f.timestamp = int(time.time()*1000*10 - start_time) #set the timestamp in the probe packet
-    #print f.timestamp
-    e.payload = f
-    msg.data = e.pack()
-    core.openflow.getConnection(s1_dpid).send(msg)
-    print "=====> probe sent: f=", f.timestamp, " after=", int(time.time()*1000*10 - start_time), " [10*ms]"
-
-  #the following executes only when a connection to 'switch1' exists (otherwise AttributeError can be raised)
+  #the following executes only when a connection to 'switch2' exists (otherwise AttributeError can be raised)
   if s2_dpid <>0 and not core.openflow.getConnection(s2_dpid) is None:
-    #send out port_stats_request packet through switch1 connection dst_dpid (to measure T2)
-    core.openflow.getConnection(s2_dpid).send(of.ofp_stats_request(body=of.ofp_port_stats_request()))
-    sent_time2=time.time() * 1000*10 - start_time #sending time of stats_req: ctrl => switch1
-    #print "sent_time2:", sent_time2
+    sent_time2 = send_stats_request_packet(src_dpid=s2_dpid, start_time=start_time)
+
+  #the following executes only when a connection to 'switch3' exists (otherwise AttributeError can be raised)
+  if s3_dpid <>0 and not core.openflow.getConnection(s3_dpid) is None:
+    sent_time3 = send_stats_request_packet(src_dpid=s3_dpid, start_time=start_time)
+
+  #the following executes only when a connection to 'switch4' exists (otherwise AttributeError can be raised)
+  if s4_dpid <>0 and not core.openflow.getConnection(s4_dpid) is None:
+    sent_time4 = send_stats_request_packet(src_dpid=s4_dpid, start_time=start_time)
 
 def launch ():
   #This is launch function that POX calls to initialize the component (delay_measurement.py here).
