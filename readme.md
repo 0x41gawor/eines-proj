@@ -107,3 +107,87 @@ Tzn. gdy pojawi się pakiet i switch wyśle do dzienciola PACKET_IN, to żeby dz
 Na to to się przekłada w flow table
 
 ![](img/5.png)
+
+## 2. Network Policer
+
+To będzie tak, że będą przychodzić flow. A my te flowy będziemy przypisywać do tego którymi ścieżkami mają iść. Network Policer będzie przypisywał, które flow ma iść którą ścieżką. Komponent FlowRouteApplier będzie actually przypisywał flow na route, czyli w switch'ach instalował flow table entries. Będzie miał metodkę: `install(flow, route)`, która będzie wysyłać do S1 i S5 FLOW_TABLE_MOD tak, żeby dane flow Hn-Hm poleciało danym routem.
+
+Jakie mamy route'y i jakie mamy flow.
+
+![](img/6.png)
+
+Jeśli chodzi o switche S2, S3, S4 to one są tranzytowe, mają po prostu przekazywać pakiety z portu 1 na 2 i vice versa. 
+
+Jeśli chodzi o switch S1,S5 to one muszą w obie strony rozróżniać te 9 flow i wiedzieć jaki jest path dla nich, dla tych flow tzn.
+
+Switche S1 i S5 będą miały kilka wpisów statycznych są to wpisy, które mówią jak kierować ruch do hostów //ruch z sieci
+
+```python
+------- RUCH Z SIECI
+S1:
+packet.dst_addr == "10.0.0.1" --> out_port = 1
+packet.dst_addr == "10.0.0.2" --> out_port = 2
+packet.dst_addr == "10.0.0.3" --> out_port = 3
+S5:
+packet.dst_addr == "10.0.0.4" --> out_port = 4
+packet.dst_addr == "10.0.0.5" --> out_port = 5
+packet.dst_addr == "10.0.0.6" --> out_port = 6
+```
+
+Czyli wpisy dla S2, S3 i S4 oraz statyczne dla S1 i S5 Network Policer wykonuje takie same.
+
+Gdy przyjdzie PACKET_IN od s2, s3, s4 to Network Policer ma na to metodke `installTransitRouting` a na static S1 i S4 ma metodke `installClientRouting(switch)`, obie te instalki zwracają wiadomość, którą wysyłasz. 
+
+Dopiero dynamiczne jest to co się dzieję kiedy S1 i S5 forwardują coś "w środek sieci" do switchów S2, S3 i S4.
+
+Więc jak będzie wyglądała ta metoda od dynamicznego Flow Table Mod?
+
+```python
+------- RUCH DO SIECI
+def install(Hn: n, Hm: m, Routep: p)
+	S1
+    in_port == n AND dst_addr == "10.0.0.m" ---> out_port = p+3 // w prawo
+    S5
+    in_port == m AND dst_addr == "10.0.0.n" ---> out_port = p   // w lewo
+```
+
+ta metodka zwraca dwie msg i je wysyłasz do S1 i S5.
+
+### Kiedy triggerowany jest Network Policer?
+
+Kiedy przychodzi nieznane flow. Czyli Packet IN od S1 lub S5. 
+
+Network Policer musi na tej podstawie zidentyfikować flow. A następnie wybrać mu sciezke i zainstalować mu ją. 
+
+Network Policer to musi być klasa, a w niej licznik flow dla każdego Route. `Route1FlowCount, Route2FlowCount, Route3FlowCount`. Będzie metoda `SelectRoute()`, która na podstawie tych zmiennych wybierze ścieżke. 
+
+Też fajnie by było jakby Network Policer pamiętał jakie flow przypisał to jakiej ścieżki. 
+
+Żeby reprezentować Flow przyda sie jakaś klasa.
+
+A Network Policer niech trzyma mape flow<->route
+
+### Identyfikacja flow
+
+Flow mogą originate tylko z H1, H2 i H3 -> rozponawanie flow będzie tylko w S1.
+
+```python
+a.in_port ---> Hn
+a.dst_address ---> Hm
+flow = Flow(n,m)
+route_for_flow = select_route(flow) // select route ma mechanike, która wybiera najmniej obciążoną ścieżkę
+if (route!=None) //jak flow juz ma route (ale to się chyba nie bedzie zdarzac) to zwracamy None
+flow_route_map.add(flow, route)
+install(flow, route) // instalacja jest zarówno na S1 jak i S5
+```
+
+### Logi
+
+```python
+Network Policer: New Flow H1-H4 detected, route 1 assigned
+Network Policer: No. of flow on routes, Route1: 1, Route2: 1, Route3: 0
+Network Policer: ActiveFlows [{H1-H4,Route1}, {H2-H5,Route2}]
+```
+
+
+
