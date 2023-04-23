@@ -13,7 +13,18 @@ from dzienciol_lib import *
 from network_monitor import *
 from network_policer import *
 import signal
+import socket
+import threading
 
+HEADER = 64
+PORT = 5050
+SERVER = socket.gethostbyname(socket.gethostname())
+ADDR = (SERVER, PORT)
+FORMAT = 'utf-8'
+DISCONNECT_MESSAGE = "!DISCONNECT"
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDR)
 
 
 log = core.getLogger()
@@ -126,9 +137,35 @@ def ctrl_z_handler(signum, frame):
 
 signal.signal(signal.SIGTSTP, ctrl_z_handler)
 
+def handle_client(conn, addr):
+    connected = True
+    while connected:
+        msg_length = conn.recv(HEADER).decode(FORMAT)
+        if msg_length:
+
+            msg_length = int(msg_length)
+            msg = conn.recv(msg_length).decode(FORMAT)
+            if msg == DISCONNECT_MESSAGE:
+                connected = False
+            if msg != DISCONNECT_MESSAGE:
+                print("IntentHandler: Got " + msg)
+    conn.close()
+
+def start():
+    server.listen(5)
+    while True:
+        conn, addr = server.accept()
+        thread = threading.Thread(target=handle_client, args=(conn,addr))
+        thread.start()
+
 def launch ():
+
+  thread = threading.Thread(target=start)
+  thread.start()
+
   global networkMonitor
   networkMonitor.start_time = time.time() * 1000*10 # factor *10 applied to increase the accuracy for short delays (capture tenths of ms)
+
 
   core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp) # listen for the establishment of a new control channel with a switch, https://noxrepo.github.io/pox-doc/html/#connectionup
   core.openflow.addListenerByName("ConnectionDown", _handle_ConnectionDown)
