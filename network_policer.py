@@ -159,17 +159,17 @@ class NetworkPolicer:
 
     def balance(self):
         print "NetworkPolicer: Current State", self.route_flow_counter
-        print "Network Policer: Do we need to balance?", self.do_balance()
+        print "NetworkPolicer: Do we need to balance?", self.do_balance()
         if self.do_balance() == True:
             max_loaded_route = self.max_route()
             min_loaded_route = self.min_route()
             moved_flow = self.select_flow_from_route(max_loaded_route)
-            print "Moved flow", moved_flow
+            print "NetworkPolicer: Moved flow", moved_flow
             self.replace_flow_route(moved_flow, min_loaded_route)
-            print "Network Policer: After balance state", self.route_flow_counter
+            print "NetworkPolicer: After balance state", self.route_flow_counter
             self.show_flow_route_map()
         else:
-            print "Network Policer: No need for balance"
+            print "NetworkPolicer: No need for balance"
 
     def do_balance(self):
         if abs(self.route_flow_counter[0]-self.route_flow_counter[1]) > 1:
@@ -242,9 +242,9 @@ class NetworkPolicer:
         for x in range(len(a)):
             flow, route = a[x]
             if flow.is_equal(self.intented_flow):
-                print "[*", flow, "route", route,"*]"
+                print "NetworkPolicer: [*", flow, "route", route,"*]"
             else:
-                print "[ ", flow, "route", route, " ]"
+                print "NetworkPolicer: [ ", flow, "route", route, " ]"
 
     def install_arp_s1(self, event, packet):
         if packet.protodst=="10.0.0.4":

@@ -100,16 +100,15 @@ def _handle_PacketIn(event):
       if networkPolicer.does_flow_exist(flow) == False:
         # jesli nie no to mamy nowe flow
         print "---------------------------------------------------------"
-        print "Zidentyfikowane flow:", flow
+        print "NetworkPolicer: identified flow:", flow
         # wybranie sciezki
         route = networkPolicer.select_route()
-        print "Wybrana sciezka:", route
+        print "NetworkPolicer: selected route:", route
         # powiazanie flow i jego sciezki 
         networkPolicer.flow_route_map.append((flow, route))
         networkPolicer.increment_route_counter(route, 1)
-        print "Flow Route Map"
         networkPolicer.show_flow_route_map()
-        print "Route flows counter:", networkPolicer.route_flow_counter
+        print "NetworkPolicer: Route Flows Counter:", networkPolicer.route_flow_counter
         # instalacja sciezki w sieci
         networkPolicer.install(flow, route)
 
@@ -160,7 +159,7 @@ def handle_client(conn, addr):
                 limit = data[2]
                 flow = Flow(int(h_src), int(h_dst))
                 intent = Intent(flow, int(limit))
-                print "Intent Handler: got ", intent
+                print "IntentHandler: got ", intent
                 intentPolicer.handle_intent(intent)
 
     conn.close()

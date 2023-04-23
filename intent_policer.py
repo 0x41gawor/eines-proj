@@ -21,15 +21,15 @@ class IntentPolicer:
         print "IntentPolicer: Route3.delay", route3_delay
 
         if intent.limit > route1_delay:
-            print "IntentPolicer: route1 is matching the requirement"
+            print "IntentPolicer: route 1 is matching the requirement"
             self.networkPolicer.intented_flow = intent.flow
             self.networkPolicer.enforce_route_for_flow(1, intent.flow)
         elif intent.limit > route2_delay:
-            print "IntentPolicer: route2 is matching the requirement"
+            print "IntentPolicer: route 2 is matching the requirement"
             self.networkPolicer.intented_flow = intent.flow
             self.networkPolicer.enforce_route_for_flow(2, intent.flow)
         elif intent.limit > route3_delay:
-            print "IntentPolicer: route3 is matching the requirement"
+            print "IntentPolicer: route 3 is matching the requirement"
             self.networkPolicer.intented_flow = intent.flow
             self.networkPolicer.enforce_route_for_flow(3, intent.flow)
         else:

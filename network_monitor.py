@@ -86,10 +86,13 @@ class NetworkMonitor:
         delay = int(received_time - d - OWDs1_ctrl - other_s_OWD)/10
         # print "s1-",switch_name,"delay:", delay, "[ms]"# <=====" # divide by 10 to normalise to milliseconds
         if switch_name == "s2":
+            print "NetworkMonitor: route 1 delay:", delay, "[ms]"
             self.s1_s2_delay = delay
         elif switch_name == "s3":
+            print "NetworkMonitor: route 2 delay:", delay, "[ms]"
             self.s1_s3_delay = delay
         elif switch_name == "s4":
+            print "NetworkMonitor: route 3 delay:", delay, "[ms]"
             self.s1_s4_delay = delay
     
     def print_delays(self):
