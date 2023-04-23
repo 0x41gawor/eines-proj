@@ -69,6 +69,9 @@ class Flow:
         return "Flow[H{}<->H{}]".format(self.h_src, self.h_dst)
     
     def is_equal(self, flow):
+        if flow==None:
+            return False
+
         if self.h_src == flow.h_src and self.h_dst == flow.h_dst:
             return True
         return False
@@ -80,6 +83,7 @@ class NetworkPolicer:
         self.s5_dpid = 0
         self.openflow = None
         self.flow_route_map = []
+        self.intented_flow = None
     
     # identyfikuje flow, narazie w switchu 1 i chyba tyle wystarczy
     def identify_flow(self, event, s_dpid):
@@ -155,6 +159,56 @@ class NetworkPolicer:
 
     def balance(self):
         print "NetworkPolicer: Current State", self.route_flow_counter
+        print "Network Policer: Do we need to balance?", self.do_balance()
+        if self.do_balance() == True:
+            max_loaded_route = self.max_route()
+            min_loaded_route = self.min_route()
+            moved_flow = self.select_flow_from_route(max_loaded_route)
+            print "Moved flow", moved_flow
+            self.replace_flow_route(moved_flow, min_loaded_route)
+            print "Network Policer: After balance state", self.route_flow_counter
+            self.show_flow_route_map()
+        else:
+            print "Network Policer: No need for balance"
+
+    def do_balance(self):
+        if abs(self.route_flow_counter[0]-self.route_flow_counter[1]) > 1:
+            return True
+        if abs(self.route_flow_counter[0]-self.route_flow_counter[2]) > 1:
+            return True
+        if abs(self.route_flow_counter[2]-self.route_flow_counter[1]) > 1:
+            return True
+        return False
+
+    # zwraca ktory nr route ma najwiecej flow
+    def max_route(self):
+        max = 0
+        index = 0
+        i = 1
+        for x in self.route_flow_counter:
+            if x > max:
+                max = x
+                index = i
+            i+=1
+        return index
+
+    # zwraca ktory route ma najmniej flow
+    def min_route(self):
+        min = 100 
+        index = 0
+        i = 1
+        for x in self.route_flow_counter:
+            if x < min:
+                min = x
+                index = i
+            i+=1
+        return index
+    
+    def select_flow_from_route(self, route):
+        for temp_flow, temp_route in self.flow_route_map:
+            if temp_route == route and (not temp_flow.is_equal(self.intented_flow)):
+                return temp_flow
+            
 
     def replace_flow_route(self, flow, new_route):
         index = 0
@@ -184,9 +238,13 @@ class NetworkPolicer:
 
     def show_flow_route_map(self):
         a = self.flow_route_map
+
         for x in range(len(a)):
             flow, route = a[x]
-            print "[", flow, "route", route, "]"
+            if flow.is_equal(self.intented_flow):
+                print "[*", flow, "route", route,"*]"
+            else:
+                print "[ ", flow, "route", route, " ]"
 
     def install_arp_s1(self, event, packet):
         if packet.protodst=="10.0.0.4":
