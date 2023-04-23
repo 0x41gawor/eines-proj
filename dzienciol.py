@@ -12,10 +12,15 @@ import time
 from dzienciol_lib import *
 from network_monitor import *
 from network_policer import *
- 
+import signal
+
+
+
 log = core.getLogger()
 
 networkMonitor = NetworkMonitor();
+
+networkPolicer = NetworkPolicer();
 
 s1_dpid=0 
 s2_dpid=0
@@ -32,6 +37,7 @@ def _handle_ConnectionUp (event):
     if m.name == "s1-eth1":
       s1_dpid = event.connection.dpid
       networkMonitor.s1_dpid = s1_dpid
+      networkPolicer.s1_dpid = s1_dpid
       print "s1_dpid=", s1_dpid
     elif m.name == "s2-eth1":
       s2_dpid = event.connection.dpid
@@ -48,6 +54,7 @@ def _handle_ConnectionUp (event):
     elif m.name == "s5-eth1":
       s5_dpid = event.connection.dpid
       networkMonitor.s5_dpid = s5_dpid
+      networkPolicer.s5_dpid = s5_dpid
       print "s5_dpid=", s5_dpid
 
   # delay measurement procedure starts
@@ -61,14 +68,35 @@ def _handle_portstats_received (event):
 
 def _handle_PacketIn(event):
 
-  global networkMonitor
+  global networkMonitor, networkPolicer
+
+  networkPolicer.openflow = core.openflow
 
   networkMonitor.handlePacketInProbe(event)
 
-  networkPolicer = NetworkPolicer(core.openflow, s1_dpid, s5_dpid)
 
   if event.connection.dpid==s1_dpid:
-    handle_packetIn_s1(event)
+    packet=event.parsed.find('arp')			# If packet object does not encapsulate a packet of the type indicated, find() returns None
+    if packet:
+      networkPolicer.install_arp_s1(event, packet)   
+    else:
+      # identyfikacja flow
+      flow = networkPolicer.identify_flow(event, s1_dpid)
+      print "---------------------------------------------------------"
+      print "Zidentyfikowane flow", flow
+      # wybranie sciezki
+      route = networkPolicer.select_route()
+      print "Wybrana sciezka", route
+      # powiazanie flow i jego sciezki 
+      networkPolicer.flow_route_map.append((flow, route))
+      networkPolicer.increment_route_counter(route, 1)
+      print "Flow Route Map"
+      networkPolicer.show_flow_route_map()
+      print "Route flows counter", networkPolicer.route_flow_counter
+      # instalacja sciezki w sieci
+      networkPolicer.install(flow, route)
+
+
   elif event.connection.dpid==s2_dpid:
     networkPolicer.install_transit_routing(event)
   elif event.connection.dpid==s3_dpid:
@@ -76,7 +104,9 @@ def _handle_PacketIn(event):
   elif event.connection.dpid==s4_dpid:
     networkPolicer.install_transit_routing(event)
   elif event.connection.dpid==s5_dpid:
-    handle_packetIn_s5(event)
+    packet=event.parsed.find('arp')			# If packet object does not encapsulate a packet of the type indicated, find() returns None
+    if packet:
+      networkPolicer.install_arp_s5(event, packet)   
 
 def _handle_ConnectionDown (event):
   #Handle connection down - stop the timer for sending the probes
@@ -88,15 +118,17 @@ def _handle_ConnectionDown (event):
 def _timer_func ():
   global networkMonitor
   networkMonitor.trigger_measurement_procedure()
-  
-def launch ():
-  #This is launch function that POX calls to initialize the component (delay_measurement.py here).
-  #This is usually a function actually named 'launch', though there are exceptions.
-  #Fore more info: http://intronetworks.cs.luc.edu/auxiliary_files/mininet/poxwiki.pdf
 
+def ctrl_z_handler(signum, frame):
   global networkMonitor
-  start_time = time.time() * 1000*10 # factor *10 applied to increase the accuracy for short delays (capture tenths of ms)
-  networkMonitor.start_time = start_time
+  print "elo"
+  networkMonitor.print_delays()
+
+signal.signal(signal.SIGTSTP, ctrl_z_handler)
+
+def launch ():
+  global networkMonitor
+  networkMonitor.start_time = time.time() * 1000*10 # factor *10 applied to increase the accuracy for short delays (capture tenths of ms)
 
   core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp) # listen for the establishment of a new control channel with a switch, https://noxrepo.github.io/pox-doc/html/#connectionup
   core.openflow.addListenerByName("ConnectionDown", _handle_ConnectionDown)

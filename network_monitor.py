@@ -49,6 +49,11 @@ class NetworkMonitor:
         self.s4_dpid = 0
         self.s5_dpid = 0
 
+        self.s1_s2_delay = 0
+        self.s1_s3_delay = 0
+        self.s1_s4_delay = 0
+
+
     # Measures T1 (from S1) or T2 (for S2, S3, S4)
     def handle_PortStats(self, event):
         received_time = time.time() * 1000*10 - self.start_time
@@ -62,10 +67,10 @@ class NetworkMonitor:
             self.t2_s4=0.5*(received_time - self.sent_time4)
 
     def handlePacketInProbe(self, event):
-        received_time = time.time() * 1000*10 - self.start_time 
 
         packet = event.parsed
         if packet.type==0x5577: #0x5577 is unregistered EtherType, here assigned to probe packets
+            received_time = time.time() * 1000*10 - self.start_time 
             if event.connection.dpid==self.s2_dpid:
                 self.handle_probe_packetIn(packet=packet, received_time=received_time, OWDs1_ctrl=self.t1, other_s_OWD=self.t2_s2, switch_name="s2")
             elif event.connection.dpid==self.s3_dpid:
@@ -78,7 +83,20 @@ class NetworkMonitor:
         c=packet.find('ethernet').payload
         d,=struct.unpack('!I', c)  # note that d,=... is a struct.unpack and always returns a tuple
         #print "[ms*10]: received_time=", int(received_time), ", d=", d, ", OWDs1_ctrl=", int(OWDs1_ctrl), ", OWD",switch_name,"_ctrl=", int(other_s_OWD)
-        print "s1-",switch_name,"delay:", int(received_time - d - OWDs1_ctrl - other_s_OWD)/10, "[ms]"# <=====" # divide by 10 to normalise to milliseconds
+        delay = int(received_time - d - OWDs1_ctrl - other_s_OWD)/10
+        # print "s1-",switch_name,"delay:", delay, "[ms]"# <=====" # divide by 10 to normalise to milliseconds
+        if switch_name == "s2":
+            self.s1_s2_delay = delay
+        elif switch_name == "s3":
+            self.s1_s3_delay = delay
+        elif switch_name == "s4":
+            self.s1_s4_delay = delay
+    
+    def print_delays(self):
+        print "NetworkMonitor: s1-s2 delay:", self.s1_s2_delay, "[ms]"
+        print "NetworkMonitor: s1-s3 delay:", self.s1_s3_delay, "[ms]"
+        print "NetworkMonitor: s1-s4 delay:", self.s1_s4_delay, "[ms]"
+
 
     def trigger_measurement_procedure(self):
         if self.s1_dpid <>0 and not core.openflow.getConnection(self.s1_dpid) is None:
