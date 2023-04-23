@@ -12,6 +12,7 @@ import time
 from dzienciol_lib import *
 from network_monitor import *
 from network_policer import *
+from intent_policer import *
 import signal
 import socket
 import threading
@@ -93,19 +94,22 @@ def _handle_PacketIn(event):
     else:
       # identyfikacja flow
       flow = networkPolicer.identify_flow(event, s1_dpid)
-      print "---------------------------------------------------------"
-      print "Zidentyfikowane flow", flow
-      # wybranie sciezki
-      route = networkPolicer.select_route()
-      print "Wybrana sciezka", route
-      # powiazanie flow i jego sciezki 
-      networkPolicer.flow_route_map.append((flow, route))
-      networkPolicer.increment_route_counter(route, 1)
-      print "Flow Route Map"
-      networkPolicer.show_flow_route_map()
-      print "Route flows counter", networkPolicer.route_flow_counter
-      # instalacja sciezki w sieci
-      networkPolicer.install(flow, route)
+      # czy juz jest takie flow
+      if networkPolicer.does_flow_exist(flow) == False:
+        # jesli nie no to mamy nowe flow
+        print "---------------------------------------------------------"
+        print "Zidentyfikowane flow:", flow
+        # wybranie sciezki
+        route = networkPolicer.select_route()
+        print "Wybrana sciezka:", route
+        # powiazanie flow i jego sciezki 
+        networkPolicer.flow_route_map.append((flow, route))
+        networkPolicer.increment_route_counter(route, 1)
+        print "Flow Route Map"
+        networkPolicer.show_flow_route_map()
+        print "Route flows counter:", networkPolicer.route_flow_counter
+        # instalacja sciezki w sieci
+        networkPolicer.install(flow, route)
 
 
   elif event.connection.dpid==s2_dpid:
@@ -148,7 +152,14 @@ def handle_client(conn, addr):
             if msg == DISCONNECT_MESSAGE:
                 connected = False
             if msg != DISCONNECT_MESSAGE:
-                print("IntentHandler: Got " + msg)
+                data = msg.split()
+                h_src = data[0]
+                h_dst = data[1]
+                limit = data[2]
+                flow = Flow(h_src, h_dst)
+                intent = Intent(flow, limit)
+                print "Intent Handler: got ", intent
+
     conn.close()
 
 def start():
@@ -167,7 +178,7 @@ def launch ():
   networkMonitor.start_time = time.time() * 1000*10 # factor *10 applied to increase the accuracy for short delays (capture tenths of ms)
 
 
-  core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp) # listen for the establishment of a new control channel with a switch, https://noxrepo.github.io/pox-doc/html/#connectionup
+  core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)
   core.openflow.addListenerByName("ConnectionDown", _handle_ConnectionDown)
   core.openflow.addListenerByName("PacketIn", _handle_PacketIn)
   core.openflow.addListenerByName("PortStatsReceived", _handle_portstats_received)

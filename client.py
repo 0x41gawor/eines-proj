@@ -50,7 +50,8 @@ def send_message():
     if(sourceID == 1 or sourceID == 2 or sourceID == 3):
         if(destinationID == 4 or destinationID == 5 or destinationID == 6):
             intent = Intent(sourceID, destinationID, delay)
-            send(str(intent))
+            msg = "{} {} {}".format(intent.h_src, intent.h_dst, intent.limit)
+            send(msg)
             send(DISCONNECT_MESSAGE)
         else:
             print("Wrong destination ID, can't sand this message (Try value between 4 to 6)")

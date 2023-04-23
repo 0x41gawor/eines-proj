@@ -69,7 +69,7 @@ class Flow:
         return "Flow[H{}<->H{}]".format(self.h_src, self.h_dst)
     
     def is_equal(self, flow):
-        if self.h_src == flow.h1 and self.h_dst == self.h_dst:
+        if self.h_src == flow.h_src and self.h_dst == flow.h_dst:
             return True
         return False
 
@@ -140,12 +140,21 @@ class NetworkPolicer:
         msg = FlowEntryInPortAddressOutPort(in_port=route, dst_address="10.0.0.{}".format(flow.h_dst), out_port=flow.h_dst)
         self.openflow.getConnection(self.s5_dpid).send(msg)
 
+    def does_flow_exist(self, checked_flow):
+        a = self.flow_route_map
+        for x in range(len(a)):
+            flow, route = a[x]
+            if flow.is_equal(checked_flow):
+                return True
+        return False    
+        
+
 
     def show_flow_route_map(self):
         a = self.flow_route_map
         for x in range(len(a)):
             flow, route = a[x]
-            print "[", flow, " ", route, "]"
+            print "[", flow, "route", route, "]"
 
     def install_arp_s1(self, event, packet):
         if packet.protodst=="10.0.0.4":
