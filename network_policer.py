@@ -140,6 +140,39 @@ class NetworkPolicer:
         msg = FlowEntryInPortAddressOutPort(in_port=route, dst_address="10.0.0.{}".format(flow.h_dst), out_port=flow.h_dst)
         self.openflow.getConnection(self.s5_dpid).send(msg)
 
+    def enforce_route_for_flow(self, route, flow):
+        if self.does_flow_exist(flow) == True:
+            # na liscie podmieniamy route dla flow
+            self.replace_flow_route(flow, route)
+            self.install(flow, route)
+        else:
+            # instalacja flow w sieci
+            self.install(flow, route)
+            # powiazanie flow i jego sciezki 
+            self.flow_route_map.append((flow, route))
+            self.increment_route_counter(route, 1)
+        self.show_flow_route_map()
+
+    def balance(self):
+        print "NetworkPolicer: Current State", self.route_flow_counter
+
+    def replace_flow_route(self, flow, new_route):
+        index = 0
+        old_route = 0
+        for x in range(len(self.flow_route_map)):
+            flow_from_list, old_route = self.flow_route_map[x]
+            if flow_from_list.is_equal(flow):
+                break
+            index+=1
+        # teraz w index mamy index elementu ktory trzeba wyrzucic
+        self.flow_route_map.pop(index)
+        self.flow_route_map.append((flow, new_route))
+        # dekrementujemy stary route
+        self.increment_route_counter(old_route, -1)
+        # inkrementujemy nowy  route
+        self.increment_route_counter(new_route, 1)
+
+
     def does_flow_exist(self, checked_flow):
         a = self.flow_route_map
         for x in range(len(a)):
@@ -148,7 +181,6 @@ class NetworkPolicer:
                 return True
         return False    
         
-
 
     def show_flow_route_map(self):
         a = self.flow_route_map

@@ -30,9 +30,11 @@ server.bind(ADDR)
 
 log = core.getLogger()
 
-networkMonitor = NetworkMonitor();
+networkMonitor = NetworkMonitor()
 
-networkPolicer = NetworkPolicer();
+networkPolicer = NetworkPolicer()
+
+intentPolicer = IntentPolicer(networkPolicer, networkMonitor)
 
 s1_dpid=0 
 s2_dpid=0
@@ -156,9 +158,10 @@ def handle_client(conn, addr):
                 h_src = data[0]
                 h_dst = data[1]
                 limit = data[2]
-                flow = Flow(h_src, h_dst)
-                intent = Intent(flow, limit)
+                flow = Flow(int(h_src), int(h_dst))
+                intent = Intent(flow, int(limit))
                 print "Intent Handler: got ", intent
+                intentPolicer.handle_intent(intent)
 
     conn.close()
 
