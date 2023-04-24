@@ -110,7 +110,7 @@ Na to to się przekłada w flow table
 
 ## 2. Network Policer
 
-To będzie tak, że będą przychodzić flow. A my te flowy będziemy przypisywać do tego którymi ścieżkami mają iść. Network Policer będzie przypisywał, które flow ma iść którą ścieżką. Komponent FlowRouteApplier będzie actually przypisywał flow na route, czyli w switch'ach instalował flow table entries. Będzie miał metodkę: `install(flow, route)`, która będzie wysyłać do S1 i S5 FLOW_TABLE_MOD tak, żeby dane flow Hn-Hm poleciało danym routem.
+To będzie tak, że będą przychodzić flow. A my te flowy będziemy przypisywać do tego, którymi ścieżkami mają iść. Network Policer będzie przypisywał, które flow ma iść którą ścieżką. Komponent FlowRouteApplier będzie actually przypisywał flow na route, czyli w switch'ach instalował flow table entries. Będzie miał metodkę: `install(flow, route)`, która będzie wysyłać do S1 i S5 FLOW_TABLE_MOD tak, żeby dane flow Hn-Hm poleciało danym routem.
 
 Jakie mamy route'y i jakie mamy flow.
 
@@ -189,5 +189,38 @@ Network Policer: No. of flow on routes, Route1: 1, Route2: 1, Route3: 0
 Network Policer: ActiveFlows [{H1-H4,Route1}, {H2-H5,Route2}]
 ```
 
+## 3. Network Monitor
+
+## 4. Intent Handler
+
+## 5. Intent Policer
+
+Tu opisz algorytm wymuszania route dla flow za pośrednictwem NetworkPolicer.
+
+Drugi alg to:
+
+- zczytuje pomiary z NetworkMonitor (delaye dla każdego route 1 2 3)
+- zczytuje limit oraz route dla intentowanego flow
+- sprawdza czy intented_flow.limit < intented_flow.route.delay
+  - jeśli TAK, to nic
+  - jeśli NIE, to sprawdza czy jest jakiś route, który spełnia limit
+    - jeśli NIE -> to komunikat, że nie da się spełnić requirements for intented flow
+    - jeśli TAK -> to przenosimy intented_flow na route, który spełnia wymagania
+
+Żeby pokazac to, to odpal
+
+z topologi H1 ping h4, zeby bylo jedno flow i dawaj 5 prob przy odpalaniu topology
+
+a potem z clienta daj jakis delay lekko wiekszy od delayi na łączach i wtedy mozliwe ze po iluś itkach networkMonitora samo sie pozmienia
 
 
+
+# Sprawko
+
+- general description
+- poczynione założenia
+- ogólny opis jak działa nasza sieć
+- nasz produkt, czyli dzienciol
+- architektura dzienciola
+- scenariusze
+- 

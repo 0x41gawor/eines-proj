@@ -66,7 +66,7 @@ sudo kill -9 <pid>
 sudo kill -9 <pid>
 ```
 
-## Debugowanie
+## Debugowanie 
 
 Przydatna komenda to
 
