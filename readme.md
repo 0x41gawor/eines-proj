@@ -2,6 +2,8 @@
 
 Na rzecz projektu stworzymy komponent POX o nazwie `dzienciol.py`, który będzie implementował funkcjonalności wymagane w projekcie.
 
+![](img/logo-wide.png)
+
 # Podjęte decyzje, poczynione założenia
 
 ## Intent model
@@ -224,3 +226,9 @@ a potem z clienta daj jakis delay lekko wiekszy od delayi na łączach i wtedy m
 - architektura dzienciola
 - scenariusze
 - 
+
+# Demo
+
+- Test the NetworkPolicer load balancing
+- Test the Intent Handling with flow rearranging
+- Test the Intent monitoring when delay on route changes
