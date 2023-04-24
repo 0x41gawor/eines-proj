@@ -84,6 +84,8 @@ class NetworkPolicer:
         self.openflow = None
         self.flow_route_map = []
         self.intented_flow = None
+        self.intented_flow_route = 0
+        self.intented_flow_limit = 0
     
     # identyfikuje flow, narazie w switchu 1 i chyba tyle wystarczy
     def identify_flow(self, event, s_dpid):

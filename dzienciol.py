@@ -130,10 +130,11 @@ def _handle_ConnectionDown (event):
   print "ConnectionDown: ", dpidToStr(event.connection.dpid)
   mytimer.cancel()
 
-# Called periodically to trigger NetworkMonitor measurements
+# Called periodically to trigger NetworkMonitor measurements and IntentPolicer `delay on intented flow` policy
 def _timer_func ():
   global networkMonitor
   networkMonitor.trigger_measurement_procedure()
+  intentPolicer.trigger_policy_procedure()
 
 def ctrl_z_handler(signum, frame):
   global networkMonitor
